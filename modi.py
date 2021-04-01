@@ -1,7 +1,7 @@
 from pop import Pilot, LiDAR
-import time
+import random
 import math
-speed = 20
+speed = 30
 
 bot = Pilot.SerBot()
 bot.setSpeed(speed)
@@ -9,16 +9,18 @@ lidar = LiDAR.Rplidar()
 lidar.connect()
 lidar.startMotor()
 
-serbot_width = (1 / math.sqrt(3)) * 2 * 1000
+serbot_width = (1 / math.sqrt(3)) * 2 * 100
+serbot_width = 500
 
 def calcAngle(length): 
-    radian = math.atan2(serbot_width/2, length)
-    angle = radian * 180 / math.pi
+    radian = math.atan((serbot_width/2) / length)
+    angle = radian * (180 / math.pi)
     return angle
 
-def collisonDetect(angle):
+def collisonDetect(length):
     vectors = lidar.getVectors()
-    detect = []
+    angle = calcAngle(length)
+    detect = [False] * 8
     
     for i in range(8):
         h = []
@@ -38,43 +40,34 @@ def collisonDetect(angle):
                     h.append(v[1])
                     
         if len(h) > 0:
-            if min(h) < 500: detect.append(True)
-            else: detect.append(False)
-
+            if min(h) < length: detect[i] = True
+            else: detect[i] = False
     return detect
-
-angle = calcAngle(1000)
-print("angle :", angle)
-collisonDetect(angle)
 
 state = True
 mode = 0
+bot.move(mode * 45, speed)
 while state:
     try:
-        vectors = lidar.getVectors()
-        scan = []
+        if collisonDetect(300)[mode]:
+            bot.stop()
+            continue
+
+        de_list = collisonDetect(800)
+        print(mode, de_list)
         
-        for v in vectors:
-            if v[0] >= (360 - angle) or v[0] <= (0 + angle):
-                scan.append(v[1])
-        
-        if len(scan) > 0:
-            if min(scan) < 500:
-                print("detected")
-                de_list = collisonDetect(angle)
-                print(de_list)
-                cnt = 0
-                for de in de_list:
-                    if de == False:
-                        break
-                    cnt += 1
-                mode = cnt
-        
-        if mode == 8: 
+        if sum(de_list) == 8:
             bot.stop()
             print("detected all")
-        else: bot.move(mode*45, speed)
-        time.sleep(0.2)
+            continue
+
+        if de_list[mode] == True:            
+            while True:
+                i = random.randint(0, 7)
+                if de_list[i] == False:
+                    break
+            mode = i    
+        bot.move(mode * 45, speed)
         
     except KeyboardInterrupt:
         state = False
