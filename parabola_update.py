@@ -1,3 +1,4 @@
+# https://www.delftstack.com/ko/howto/matplotlib/how-to-automate-plot-updates-in-matplotlib/
 import numpy as np
 import matplotlib.pyplot as plt
 import math
