@@ -7,11 +7,11 @@ g = 9.8 # 중력가속도
 seta = 30 # 각도
 Vo = 60 # 속도
 t = 0
-t_period = 0.1
+t_period = 0.5
 
 fig = plt.figure()
-x_list = []
-y_list = []
+x_list = [0]
+y_list = [0]
 
 while True:
     t += t_period
